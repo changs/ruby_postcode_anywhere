@@ -7,7 +7,11 @@ module PostcodeAnywhere
     attr_accessor :errors, :response
 
     def success?
-      errors.empty?
+      !fail?
+    end
+
+    def fail?
+      response.first["IsCorrect"] == "False" || errors.any?
     end
   end
 
@@ -17,13 +21,27 @@ module PostcodeAnywhere
 
   end
 
-  def self.lookup(postcode)
+  def self.validate_bank_details(account_number, sortcode)
+    requestUrl = "http://services.postcodeanywhere.co.uk/BankAccountValidation/Interactive/Validate/v2.00/xmle.ws?"
+    requestUrl += "&key=#{key}"
+    requestUrl += "&accountnumber=#{account_number}"
+    requestUrl += "&sortcode=#{sortcode}"
 
-    result = Response.new
+    PostcodeAnywhere.query(requestUrl)
+  end
+
+  def self.lookup(postcode)
     requestUrl = "http://services.postcodeanywhere.co.uk/PostcodeAnywhere/Interactive/RetrieveByParts/v1.00/xmle.ws?"
     requestUrl += "&key=#{PostcodeAnywhere.key}"
     requestUrl += "&postcode=#{URI.encode_www_form_component(postcode)}"
 
+    PostcodeAnywhere.query(requestUrl)
+  end
+
+private
+
+  def self.query(requestUrl)
+    result = Response.new
     xml_results = Net::HTTP.get_response(URI.parse(requestUrl))
 
     results = REXML::Document.new(xml_results.body)
