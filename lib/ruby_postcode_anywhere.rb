@@ -11,7 +11,8 @@ module PostcodeAnywhere
     end
 
     def fail?
-      response.first["IsCorrect"] == "False" || errors.any?
+      return true if errors.any?
+      response.first["IsCorrect"] == "False" if response 
     end
   end
 
