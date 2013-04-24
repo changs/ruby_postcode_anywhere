@@ -14,6 +14,14 @@ module PostcodeAnywhere
       return true if errors.any?
       response.first["IsCorrect"] == "False" if response 
     end
+
+    def sort_code_valid?
+      !(errors["Description"] == "SortCode Invalid" || ( response && response.first["StatusInformation"] == "UnknownSortCode"))
+    end
+
+    def account_number_valid?
+      !(errors["Description"] == "AccountNumber Invalid" || ( response && response.first["StatusInformation"] == "InvalidAccountNumber"))
+    end
   end
 
   class << self
